@@ -17,6 +17,34 @@
 # with this program; if not, write to the Free Software Foundation Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+'''
+Module: basic Python
+Assignment #4 (October 7, 2021)
+
+
+--- Goal
+Create a ProbabilityDensityFunction class that is capable of throwing
+preudo-random number with an arbitrary distribution.
+
+(In practice, start with something easy, like a triangular distribution---the
+initial debug will be easier if you know exactly what to expect.)
+
+
+--- Specifications
+- the signature of the constructor should be __init__(self, x, y), where
+  x and y are two numpy arrays sampling the pdf on a grid of values, that
+  you will use to build a spline
+- [optional] add more arguments to the constructor to control the creation
+  of the spline (e.g., its order)
+- the class should be able to evaluate itself on a generic point or array of
+  points
+- the class should be able to calculate the probability for the random
+  variable to be included in a generic interval
+- the class should be able to throw random numbers according to the distribution
+  that it represents
+- [optional] how many random numbers do you have to throw to hit the
+  numerical inaccuracy of your generator?
+'''
 import numpy as np
 import random
 from scipy.interpolate import InterpolatedUnivariateSpline
@@ -37,19 +65,20 @@ class ProbabilityDensityFunction(InterpolatedUnivariateSpline):
 
     def __init__(self, x, y, k=3):
         """Constructor.
-        """
-        super().__init__(x, y, k)
-
-        norm = InterpolatedUnivariateSpline(x, y, k).integral(x[0], x[-1])
+                """
+        # Normalize the pdf, if it is not (and probably it is npt!)
+        norm = InterpolatedUnivariateSpline(x, y, k=k).integral(x[0], x[-1])
         y /= norm
-        f = InterpolatedUnivariateSpline(x, y, k)
-        ycdf = np.array([f.integral(x[0], xcdf) for xcdf in x])
-        self.cdf = InterpolatedUnivariateSpline(x, ycdf)
-
-        # scipy assume che non ci siano valori identici della x (x spline)
+        super().__init__(x, y, k=k)
+        ycdf = np.array([self.integral(x[0], xcdf) for xcdf in x])
+        self.cdf = InterpolatedUnivariateSpline(x, ycdf, k=k)
+        # Need to make sure that the vector I am passing to the ppf spline as
+        # the x values (here we are interchanging x and y: the ppf is the inverse
+        # function of the cdf!) has no duplicates---and need to filter the y
+        # accordingly! We can only invert bijective functions!
         xppf, ippf = np.unique(ycdf, return_index=True)
         yppf = x[ippf]
-        self.ppf = InterpolatedUnivariateSpline(xppf, yppf)
+        self.ppf = InterpolatedUnivariateSpline(xppf, yppf, k=k)
 
     def prob(self, x1, x2):
         """Return the probability for the random variable to be included

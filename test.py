@@ -32,9 +32,9 @@ if sys.flags.interactive:
     plt.ion() #used to turn on interactive mode (plot blocca tutto)
 
 
-class PdfTests(unittest.TestCase):
+#class PdfTests(unittest.TestCase):
     """Unit test for cdf"""
-
+'''
     def test_uniform(self):
         """ """
         x = np.linspace(0., 1., 100)
@@ -56,9 +56,11 @@ class PdfTests(unittest.TestCase):
         y = np.zeros(x.shape)
         y[x <= 0.5] = 2 * x[x <= 0.5]
         y[x > 0.75] = 3.
+        self.assertEqual(len(x), len(y))
         pdf = ProbabilityDensityFunction(x, y, 1)
-
-    def linear(self, x_min, x_max, slope):
+'''
+class PdfTests(unittest.TestCase):
+    def test_linear(self, x_min, x_max, slope):
         """ """
 
         x = np.linspace(x_min, x_max, 20)
@@ -66,16 +68,16 @@ class PdfTests(unittest.TestCase):
         f = ProbabilityDensityFunction(x, y)
 
         #check normalization
-        norm= f.integral(x_min, x_max)
+        norm = f.integral(x_min, x_max)
         self.assertAlmostEqual(norm, 1.0)
 
         plt.hist(f.rnd(size=100000), bins=100)
         plt.show()
 
-    def linear_test(self):
-        self.linear(0., 2., 1.)
-        self.linear(1., 4., 0.5)
-        self.linear(1., 2., 3.)
+    def test__(self):
+        self.test_linear(0., 2., 1.)
+        self.test_linear(1., 4., 0.5)
+        self.test_linear(1., 2., 3.)
 
 
 if __name__ == '__main__':
